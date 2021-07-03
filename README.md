@@ -1,6 +1,6 @@
 ### Lines
 
-A small, but highly addicted game :-)
+A small, but highly addictive game :-)
 
 ![Game interface](./screenshot.PNG)
 
