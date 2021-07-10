@@ -3,6 +3,7 @@ from itertools import chain
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
+
 from game_logic import GameField
 from resources import Sounds
 
@@ -19,14 +20,13 @@ class Percent:
 class QLabelNumber(QLabel):
     def __init__(self, *args, number: int = 0, **kwargs):
         super(QLabelNumber, self).__init__(*args, **kwargs)
-        font = QFont("Segoe Script", 13)
-        self.setFont(font)
         self.display(number)
         min_width = self.fontMetrics().boundingRect("00000").width()
         self.setMinimumWidth(min_width)
+        # self.setMinimumHeight(50)
 
     def display(self, number: int):
-        self.setText(str(number))
+        self.setText("Scores: " + str(number))
 
 
 class NextColorItemWidget(QPushButton):
@@ -97,11 +97,9 @@ class NextColorsWidget(QWidget):
         layout = QHBoxLayout()
         layout.setContentsMargins(QMargins())
         layout.setSpacing(0)
-        layout.addStretch()
 
         label = QLabel("Next:")
-        font = QFont("Segoe Script", 13)
-        label.setFont(font)
+
         layout.addWidget(label)
         layout.addStretch()
         self.items = []
@@ -112,14 +110,7 @@ class NextColorsWidget(QWidget):
 
         layout.addStretch()
 
-        size_policy = QSizePolicy.Expanding
-        policy = QSizePolicy()
-        policy.setHorizontalPolicy(size_policy)
-        policy.setVerticalPolicy(size_policy)
-        policy.setWidthForHeight(True)
-        self.setSizePolicy(policy)
-        self.setMinimumHeight(50)
-
+        # self.setMinimumHeight(50)
         self.setLayout(layout)
 
     def show_next_colors(self, show_next: bool):
@@ -135,6 +126,11 @@ class NextColorsWidget(QWidget):
             else:
                 item.gradient = None
             item.update()
+
+    # def paintEvent(self, e: QPaintEvent):
+    #     painter = QPainter(self)
+    #     painter.fillRect(self.rect(), QColor("blue"))
+    #     super(NextColorsWidget, self).paintEvent(e)
 
 
 class FieldItemWidget(QPushButton):
@@ -231,11 +227,14 @@ class FieldItemWidget(QPushButton):
 
     def paintEvent(self, e: QPaintEvent):
         super().paintEvent(e)
+
         painter = QPainter(self)
         painter.setRenderHints(QPainter.Antialiasing | QPainter.SmoothPixmapTransform)
         painter.setPen(Qt.NoPen)
-
         pct = self.pct
+        painter.fillRect(self.rect().marginsAdded(QMargins() - 1), QColor("#d1d1d1"))
+        # painter.fillRect(self.rect().marginsAdded(QMargins() - 1), QColor("#d24bcd"))
+
         if self.next_color and self.logic_source.item is None and self.show_next:
             rect = QRectF(self.rect()).marginsAdded((QMarginsF() - (pct(30))) / self.self_size_modifier)
             shadow_rect = QRectF(rect)
@@ -323,11 +322,10 @@ class GameFieldWidget(QWidget):
 
         self.ratio = 1
         self.adjusted_to_size = (-1, -1)
-        # self.setSizePolicy(QSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored))
 
-    def resizeEvent(self, event):
+    def resizeEvent(self, e:QResizeEvent):
         # https://stackoverflow.com/a/61589941/13537384
-        size = event.size()
+        size = e.size()
         if size == self.adjusted_to_size:
             # Avoid infinite recursion. I suspect Qt does this for you,
             # but it's best to be safe.
@@ -350,24 +348,27 @@ class GameFieldWidget(QWidget):
 
 class InformationBar(QWidget):
     def __init__(self, logic_source, *args, **kwargs):
+
         super(InformationBar, self).__init__(*args, **kwargs)
-        layout = QHBoxLayout()
-        self.setLayout(layout)
-        self.setFixedHeight(50)
 
         self.logic_source = logic_source
         self.next_colors = NextColorsWidget(logic_source, parent=self)
+        self.scores_counter = QLabelNumber(self)
+
+        font = QFont("Segoe Script", 13)
+        self.setFont(font)
+        palette = self.palette()
+        palette.setColor(self.foregroundRole(), QColor("white"))
+        self.setPalette(palette)
+
+        layout = QHBoxLayout()
+        self.setLayout(layout)
+        self.setFixedHeight(50)
         layout.addWidget(self.next_colors, alignment=Qt.AlignLeft)
+        layout.addWidget(self.scores_counter, alignment=Qt.AlignRight)
+
         self.logic_source.next_colors_generated.connect(self.next_colors.update_next_colors)
         self.parent().current_scores.connect(self.update_counter)
-
-        layout.addStretch()
-        label = QLabel("Scores:")
-        font = QFont("Segoe Script", 13)
-        label.setFont(font)
-        layout.addWidget(label)
-        self.scores_counter = QLabelNumber(self)
-        layout.addWidget(self.scores_counter, alignment=Qt.AlignLeft)
 
     def reset(self):
         self.scores_counter.display(0)
@@ -393,8 +394,6 @@ class GameActions(QObject):
         self.show_next_colors.setCheckable(True)
         self.show_next_colors.setChecked(self.parent().logic_source.show_next_colors)
         self.show_next_colors.triggered.connect(self.parent().logic_source.toggle_show_next_colors)
-
-
 
 
 class GameMenu(QMenuBar):
@@ -458,3 +457,9 @@ class MainWindow(QMainWindow):
     def add_scores(self, cells_cleared):
         self.scores += cells_cleared * cells_cleared
         self.current_scores.emit(self.scores)
+
+    def paintEvent(self, e: QPaintEvent) -> None:
+        super(MainWindow, self).paintEvent(e)
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), QColor("black"))
+        painter.end()
