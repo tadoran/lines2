@@ -3,3 +3,11 @@ __pycache__/
 build
 dist/game/
 resources/
+
+.idea/
+
+venv/
+
+*.spec
+
+*.manifest
