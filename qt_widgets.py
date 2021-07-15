@@ -323,7 +323,7 @@ class GameFieldWidget(QWidget):
         self.ratio = 1
         self.adjusted_to_size = (-1, -1)
 
-    def resizeEvent(self, e:QResizeEvent):
+    def resizeEvent(self, e: QResizeEvent):
         # https://stackoverflow.com/a/61589941/13537384
         size = e.size()
         if size == self.adjusted_to_size:
@@ -348,7 +348,6 @@ class GameFieldWidget(QWidget):
 
 class InformationBar(QWidget):
     def __init__(self, logic_source, *args, **kwargs):
-
         super(InformationBar, self).__init__(*args, **kwargs)
 
         self.logic_source = logic_source

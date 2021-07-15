@@ -111,7 +111,7 @@ class GameField(QObject):
     WIDTH = 10
     HEIGHT = 10
     COLORS_ON_FIELD = 5
-    SPAWN_PER_TURN = 3
+    SPAWN_PER_TURN = 5
     ITEMS_IN_LINE = 5
     MOVE_SPEED_MS = 50
     SHOW_NEXT_COLORS = True
